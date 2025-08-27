@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+    container_name: backend
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      - db
+    networks:
+      - app-network
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    ports:
+      - "8080:80" # phpMyAdmin sera accessible sur http://localhost:8080
+    environment:
+      PMA_HOST: db # le nom du service MySQL déclaré dans docker-compose (typiquement "db")
+      PMA_PORT: 3306
+    depends_on:
+      - db
+    networks:
+      - app-network
+  db:
+    image: mysql:8
+    container_name: db
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: tasks_db
+      MYSQL_USER: userdocker
+      MYSQL_PASSWORD: userdocker
+      MYSQL_ROOT_PASSWORD: userdocker
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/dump.sql:/docker-entrypoint-initdb.d/dump.sql
+    networks:
+      - app-network
+volumes:
+  db_data:
+networks:
+  app-network:
+    driver: bridge
