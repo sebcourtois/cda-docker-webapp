@@ -1,16 +1,17 @@
 FROM node:18-alpine AS builder
 LABEL authors="SCOURTOIS"
-WORKDIR ./app
 
-COPY ./ ./
+WORKDIR build
+
+COPY ../../frontend .
 RUN npm install
 RUN npm run build
 
 FROM node:18-alpine
 
-WORKDIR ./app
+WORKDIR /var/www
 
-COPY --from=builder ./app ./
+COPY --from=builder build /var/www
 
 EXPOSE 3000
 
